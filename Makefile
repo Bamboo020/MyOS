@@ -1,4 +1,3 @@
-
 # Compiler and assembler
 CXX = g++
 ASM = nasm
@@ -19,14 +18,22 @@ all: kernel.elf
 load/loader.o: load/loader.s
 	$(ASM) -f elf32 load/loader.s -o load/loader.o
 
+# Compile I/O assembly
+output/io_asm.o: output/io.s
+	$(ASM) -f elf32 output/io.s -o output/io_asm.o
+
 # Compile C++
-main.o: main.cpp
+main.o: main.cpp output/io.h output/mmio.h
 	$(CXX) $(CXXFLAGS) -c main.cpp -o main.o
 
+# Compile io.cpp
+output/io.o: output/io.cpp output/io.h
+	$(CXX) $(CXXFLAGS) -c output/io.cpp -o output/io.o
+
 # Link kernel
-kernel.elf: load/loader.o main.o link/link.ld
+kernel.elf: load/loader.o main.o output/io.o output/io_asm.o link/link.ld
 	$(LD) -m elf_i386 -T link/link.ld \
-	-o kernel.elf load/loader.o main.o
+	    -o kernel.elf load/loader.o main.o output/io.o output/io_asm.o
 
 # Copy kernel to ISO directory
 iso/boot/kernel.elf: kernel.elf
@@ -42,7 +49,7 @@ run: myos.iso
 
 # Remove generated files
 clean:
-	rm -f load/loader.o main.o kernel.elf
+	rm -f load/loader.o main.o output/io.o output/io_asm.o kernel.elf
 	rm -f iso/boot/kernel.elf myos.iso
 
 .PHONY: all run clean
