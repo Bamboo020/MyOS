@@ -14,6 +14,15 @@ void fb_write_call(unsigned int i, char c, unsigned char fg, unsigned char bg) {
     fb[i + 1] = (bg & 0x0F) << 4 | (fg & 0x0F);
 }
 
+/**
+ * Writes a character to a specified position on the screen.
+ *
+ * @param row The row position (0-24).
+ * @param col The column position (0-79).
+ * @param c   The character to display.
+ * @param fg  The foreground (text) color.
+ * @param bg  The background color.
+ */
 void put_char(unsigned int row, unsigned int col, char c, unsigned char fg, unsigned char bg) {
     unsigned int index = (row * 80 + col) * 2;
     fb_write_call(index, c, fg, bg);

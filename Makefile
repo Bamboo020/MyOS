@@ -26,14 +26,14 @@ output/io_asm.o: output/io.s
 main.o: main.cpp output/io.h output/mmio.h
 	$(CXX) $(CXXFLAGS) -c main.cpp -o main.o
 
-# Compile io.cpp
-output/io.o: output/io.cpp output/io.h
-	$(CXX) $(CXXFLAGS) -c output/io.cpp -o output/io.o
+# Compile cursor.cpp
+output/cursor.o: output/cursor.cpp output/io.h
+	$(CXX) $(CXXFLAGS) -c output/cursor.cpp -o output/cursor.o
 
 # Link kernel
-kernel.elf: load/loader.o main.o output/io.o output/io_asm.o link/link.ld
+kernel.elf: load/loader.o main.o output/cursor.o output/io_asm.o link/link.ld
 	$(LD) -m elf_i386 -T link/link.ld \
-	    -o kernel.elf load/loader.o main.o output/io.o output/io_asm.o
+	    -o kernel.elf load/loader.o main.o output/cursor.o output/io_asm.o
 
 # Copy kernel to ISO directory
 iso/boot/kernel.elf: kernel.elf

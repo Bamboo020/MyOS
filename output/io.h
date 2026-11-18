@@ -17,4 +17,6 @@ extern "C" void outb(unsigned short port, unsigned char data);
  */
 void move_cursor(unsigned short row, unsigned short col);
 
+void enable_cursor();
+
 #endif
