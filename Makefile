@@ -1,55 +1,102 @@
-# Compiler and assembler
+
+# ==========================================
+# 1. Tools
+# ==========================================
 CXX = g++
 ASM = nasm
 LD = ld
 
-# Compiler flags
+# ==========================================
+# 2. Compiler Flags
+# ==========================================
 CXXFLAGS = -m32 -std=c++17 -ffreestanding \
            -fno-exceptions -fno-rtti \
            -fno-stack-protector -fno-pie \
            -fno-asynchronous-unwind-tables \
            -fno-unwind-tables \
-           -O2 -Wall -Wextra
+           -O2 -Wall -Wextra \
+           -I. -MMD -MP
 
-# Default target
+ASMFLAGS = -f elf32
+
+LDFLAGS = -m elf_i386 -T link/link.ld
+
+# ==========================================
+# 3. Source Files
+# ==========================================
+CPP_SOURCES = kernel/main.cpp \
+              drivers/vga/cursor.cpp \
+              drivers/vga/framebuffer.cpp \
+			  serial/serial.cpp
+
+ASM_SOURCES = load/loader.s \
+              arch/x86/io.s
+
+# ==========================================
+# 4. Object Files
+# ==========================================
+CPP_OBJECTS = $(patsubst %.cpp,build/%.o,$(CPP_SOURCES))
+ASM_OBJECTS = $(patsubst %.s,build/%.o,$(ASM_SOURCES))
+
+OBJECTS = $(ASM_OBJECTS) $(CPP_OBJECTS)
+DEPENDS = $(CPP_OBJECTS:.o=.d)
+
+# ==========================================
+# 5. Default Target
+# ==========================================
 all: kernel.elf
 
-# Compile assembly
-load/loader.o: load/loader.s
-	$(ASM) -f elf32 load/loader.s -o load/loader.o
+# ==========================================
+# 6. Compile C++ Files
+# ==========================================
+build/%.o: %.cpp
+	mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Compile I/O assembly
-output/io_asm.o: output/io.s
-	$(ASM) -f elf32 output/io.s -o output/io_asm.o
+# ==========================================
+# 7. Compile Assembly Files
+# ==========================================
+build/%.o: %.s
+	mkdir -p $(dir $@)
+	$(ASM) $(ASMFLAGS) $< -o $@
 
-# Compile C++
-main.o: main.cpp output/io.h output/mmio.h
-	$(CXX) $(CXXFLAGS) -c main.cpp -o main.o
+# ==========================================
+# 8. Link Kernel
+# ==========================================
+kernel.elf: $(OBJECTS) link/link.ld
+	$(LD) $(LDFLAGS) -o $@ $(OBJECTS)
 
-# Compile cursor.cpp
-output/cursor.o: output/cursor.cpp output/io.h
-	$(CXX) $(CXXFLAGS) -c output/cursor.cpp -o output/cursor.o
-
-# Link kernel
-kernel.elf: load/loader.o main.o output/cursor.o output/io_asm.o link/link.ld
-	$(LD) -m elf_i386 -T link/link.ld \
-	    -o kernel.elf load/loader.o main.o output/cursor.o output/io_asm.o
-
-# Copy kernel to ISO directory
+# ==========================================
+# 9. Copy Kernel to ISO Directory
+# ==========================================
 iso/boot/kernel.elf: kernel.elf
+	mkdir -p iso/boot
 	cp kernel.elf iso/boot/kernel.elf
 
-# Create bootable ISO
+# ==========================================
+# 10. Create Bootable ISO
+# ==========================================
 myos.iso: iso/boot/kernel.elf iso/boot/grub/grub.cfg
 	grub-mkrescue -o myos.iso iso
 
-# Run in QEMU with SDL
+# ==========================================
+# 11. Run in QEMU
+# ==========================================
 run: myos.iso
-	qemu-system-i386 -cdrom myos.iso -boot d -m 128 -display sdl
+	qemu-system-i386 -cdrom myos.iso \
+	    -boot d -m 128 -display sdl
 
-# Remove generated files
+# ==========================================
+# 12. Clean Build Files
+# ==========================================
 clean:
-	rm -f load/loader.o main.o output/io.o output/io_asm.o kernel.elf
-	rm -f iso/boot/kernel.elf myos.iso
+	rm -rf build
+	rm -f kernel.elf myos.iso
+	rm -f iso/boot/kernel.elf
+
+# ==========================================
+# 13. Header Dependencies
+# ==========================================
+-include $(DEPENDS)
 
 .PHONY: all run clean

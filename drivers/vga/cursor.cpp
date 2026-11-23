@@ -1,4 +1,5 @@
-#include "io.h"
+#include "cursor.h"
+#include "arch/x86/io.h"
 
 void enable_cursor() {
     outb(0x3D4, 0x0A);

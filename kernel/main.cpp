@@ -1,5 +1,5 @@
-#include "output/mmio.h"
-#include "output/io.h"
+#include "drivers/vga/cursor.h"
+#include "drivers/vga/framebuffer.h"
 
 extern "C" void kernel_main()
 {
