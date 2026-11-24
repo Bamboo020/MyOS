@@ -1,3 +1,28 @@
+#ifndef SERIAL_H
+#define SERIAL_H
+
+/* The I/O ports */
+
+/* All the I/O ports are calculated relative to the data port. This is because
+ * all serial ports (COM1, COM2, COM3, COM4) have their ports in the same
+ * order, but they start at different values.
+ */
+#define SERIAL_COM1_BASE 0x3F8 /* COM1 base port */
+
+#define SERIAL_DATA_PORT(base)           (base)
+#define SERIAL_FIFO_COMMAND_PORT(base)   (base + 2)
+#define SERIAL_LINE_COMMAND_PORT(base)   (base + 3)
+#define SERIAL_MODEM_COMMAND_PORT(base)  (base + 4)
+#define SERIAL_LINE_STATUS_PORT(base)    (base + 5)
+
+/* The I/O port commands */
+
+/* SERIAL_LINE_ENABLE_DLAB:
+ * Tells the serial port to expect first the highest 8 bits on the data port,
+ * then the lowest 8 bits will follow
+ */
+#define SERIAL_LINE_ENABLE_DLAB 0x80
+
 /** serial_configure_baud_rate:
  *  Sets the speed of the data being sent. The default speed of a serial
  *  port is 115200 bits/s. The argument is a divisor of that number, hence
@@ -7,3 +32,69 @@
  *  @param divisor  The divisor
  */
 void serial_configure_baud_rate(unsigned short com, unsigned short divisor);
+
+/** serial_configure_line:
+ *  Configures the line of the given serial port. The port is set to have a
+ *  data length of 8 bits, no parity bits, one stop bit and break control
+ *  disabled.
+ *
+ *  @param com  The serial port to configure
+ */
+void serial_configure_line(unsigned short com);
+
+/** serial_configure_fifo:
+ *  Configures the FIFO of the given serial port. The FIFO is enabled, clear
+ *  the transmit and receive FIFO queues, and an interrupt trigger level of
+ *  14 bytes is set.
+ *
+ *  @param com  The serial port to configure
+ */
+void serial_configure_fifo(unsigned short com);
+
+/** serial_configure_modem:
+ *  Configures the modem of the given serial port. The Data Terminal Ready
+ *  and Request to Send lines are enabled, and the auxilliary output #2 is
+ *  set high, which is required for interrupts to work.
+ *
+ *  @param com  The serial port to configure
+ */
+void serial_configure_modem(unsigned short com);
+
+/** serial_is_transmit_fifo_empty:
+ *  Checks whether the transmit FIFO queue is empty or not.
+ *
+ *  @param com  The serial port to check
+ *  @return     True if the transmit FIFO queue is empty, false otherwise
+ */
+int serial_is_transmit_fifo_empty(unsigned short com);
+
+/** serial_init:
+ *  Initializes the given serial port. The baud rate is set to 38400 bits/s,
+ *  the line is set to have a data length of 8 bits, no parity bits, one stop
+ *  bit and break control disabled. The FIFO is enabled, clear the transmit
+ *  and receive FIFO queues, and an interrupt trigger level of 14 bytes is
+ *  set. The Data Terminal Ready and Request to Send lines are enabled, and
+ *  the auxilliary output #2 is set high, which is required for interrupts to
+ *  work.
+ *
+ *  @param com  The serial port to initialize
+ */
+void serial_init(unsigned short com);
+
+/** serial_write_char:
+ *  Writes a single character to the given serial port.
+ *
+ *  @param com  The serial port to write to
+ *  @param c    The character to write
+ */
+void serial_write_char(unsigned short com, char c);
+
+/** serial_write:
+ *  Writes a string of characters to the given serial port.
+ *
+ *  @param com  The serial port to write to
+ *  @param str  The string to write
+ */
+void serial_write(unsigned short com, const char *str);
+
+#endif

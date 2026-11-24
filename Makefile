@@ -82,9 +82,15 @@ myos.iso: iso/boot/kernel.elf iso/boot/grub/grub.cfg
 # ==========================================
 # 11. Run in QEMU
 # ==========================================
+.PHONY: run
+
 run: myos.iso
-	qemu-system-i386 -cdrom myos.iso \
-	    -boot d -m 128 -display sdl
+	qemu-system-i386 \
+		-cdrom myos.iso \
+		-boot d \
+		-m 128 \
+		-display sdl \
+		-serial stdio
 
 # ==========================================
 # 12. Clean Build Files

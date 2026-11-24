@@ -1,8 +1,18 @@
 #include "drivers/vga/cursor.h"
 #include "drivers/vga/framebuffer.h"
+#include "serial/serial.h"
 
 extern "C" void kernel_main()
 {
+    // Initialize COM1
+    serial_init(SERIAL_COM1_BASE);
+
+    // Send text through serial port
+    serial_write(
+        SERIAL_COM1_BASE,
+        "Hello from C++ kernel!\n"
+    );
+
     volatile unsigned short* video_memory =
     reinterpret_cast<volatile unsigned short*>(0xB8000);
 
