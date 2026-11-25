@@ -1,28 +1,28 @@
-#include "drivers/vga/cursor.h"
 #include "drivers/vga/framebuffer.h"
 #include "serial/serial.h"
+#include "arch/x86/gdt.h"
 
 extern "C" void kernel_main()
 {
-    // Initialize COM1
+    /* Initialize COM1 */
     serial_init(SERIAL_COM1_BASE);
 
-    // Send text through serial port
     serial_write(
         SERIAL_COM1_BASE,
-        "Hello from C++ kernel!\n"
+        "Initializing GDT...\n"
     );
 
-    volatile unsigned short* video_memory =
-    reinterpret_cast<volatile unsigned short*>(0xB8000);
+    /* Initialize GDT */
+    gdt_init();
 
-    video_memory[0] = 0x0F41;  // A
-    video_memory[1] = 0x0F42;  // B
-    video_memory[2] = 0x0F43;  // C
-    
-    enable_cursor();
+    /* Test serial output */
+    serial_write(
+        SERIAL_COM1_BASE,
+        "GDT initialized successfully!\n"
+    );
 
-    move_cursor(0, 3);
+    /* Test framebuffer output */
+    fb_write("GDT initialized successfully!");
 
     while (true) {
         asm volatile("hlt");

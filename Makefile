@@ -27,10 +27,12 @@ LDFLAGS = -m elf_i386 -T link/link.ld
 CPP_SOURCES = kernel/main.cpp \
               drivers/vga/cursor.cpp \
               drivers/vga/framebuffer.cpp \
-			  serial/serial.cpp
+			  serial/serial.cpp \
+			  arch/x86/gdt.cpp
 
 ASM_SOURCES = load/loader.s \
-              arch/x86/io.s
+              arch/x86/io.s \
+			  arch/x86/gdt_flush.s
 
 # ==========================================
 # 4. Object Files
